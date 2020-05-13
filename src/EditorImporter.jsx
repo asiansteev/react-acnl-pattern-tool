@@ -1,5 +1,8 @@
 import React from 'react';
 import qrcode from "./jsqrcode.js";
+// import { SearchBar } from 'react-native-elements';
+import { Search } from 'react-spotify-api';
+import { SpotifyApiContext } from 'react-spotify-api';
 
 // handles all imports for the tool
 // will do both qr detection and image conversion
@@ -174,40 +177,70 @@ class EditorImporter extends React.Component {
 	}
 
 	render() {
+		const { search } = this.state;
+		const spotifyApiKey = 'XXX'
+
 		return (
 			<div>
-				<div>
-					<span className="metadata-label">Load ACNL file or QR-image:</span>
-					<input
-						ref = {this.loader}
-						type = "file"
-						onChange = {this.onLoad.bind(this)}
-					/>
-				</div>
+				<SpotifyApiContext.Provider value={spotifyApiKey}>
+					<div>
+						<span className="metadata-label">Load ACNL file or QR-image:</span>
+						<input
+							ref = {this.loader}
+							type = "file"
+							onChange = {this.onLoad.bind(this)}
+						/>
+					</div>
 
-				<div>
-					<span className="metadata-label">Convert Image</span>
-					<input
-						ref = {this.converter}
-						type = "file"
-						accept = "image*/"
-						onChange = {this.onConvert.bind(this)}
-					/>
-					<select ref = {this.converterSetting} defaultValue = {"top"}>
-						<option value="top">Use top 15 most-used nearest colors (ugly, fast)</option>
-						<option value="lowest">Optimize out of top 40 most-used nearest colors (best, slow)</option>
-						<option value="grey">Convert to greyscale (fast, pre-determined colors)</option>
-						<option value="sepia">Convert to sepia (fast, pre-determined colors)</option>
-					</select>
-				</div>
+					<div>
+						<span className="metadata-label">Convert Image</span>
+						<input
+							ref = {this.converter}
+							type = "file"
+							accept = "image*/"
+							onChange = {this.onConvert.bind(this)}
+						/>
+						<select ref = {this.converterSetting} defaultValue = {"top"}>
+							<option value="top">Use top 15 most-used nearest colors (ugly, fast)</option>
+							<option value="lowest">Optimize out of top 40 most-used nearest colors (best, slow)</option>
+							<option value="grey">Convert to greyscale (fast, pre-determined colors)</option>
+							<option value="sepia">Convert to sepia (fast, pre-determined colors)</option>
+						</select>
+					</div>
 
-				<div>
-				  <input
-				    ref = {this.searcher}
-				    type="string"
-				    onChange = {this.onSearch.bind(this)}
-				  />
-				</div>
+					<div>
+						{/*<SearchBar*/}
+					  <input
+					    ref = {this.searcher}
+					    type="string"
+					    onChange = {this.onSearch.bind(this)}
+					  />
+					</div>
+
+					<Search query="rough customers" album artist>
+			    {({data}) =>
+			        data ? (
+			            <ul>
+			                <li>Albums</li>
+			                <ul>
+			                    {data.albums.items.map(album => (
+			                    	  <div>
+				                        <li key={album.id}>{album.name}</li>
+				                        <li><img src={album.images[0].url}/></li>
+				                      </div>
+			                    ))}
+			                </ul>
+			                <li>Artists</li>
+			                <ul>
+			                    {data.artists.items.map(artist => (
+			                        <li key={artist.id}>{artist.name}</li>
+			                    ))}
+			                </ul>
+			            </ul>
+			        ) : null
+				    }
+					</Search>
+				</SpotifyApiContext.Provider>
 			</div>
 		);
 	}
