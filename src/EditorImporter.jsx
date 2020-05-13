@@ -12,6 +12,8 @@ class EditorImporter extends React.Component {
 		this.converter = React.createRef();
 		this.converterSetting = React.createRef();
 
+		this.searcher = React.createRef();
+
 		this.state = {
 			loaderPart: 1,
 			loaderData : "",
@@ -122,6 +124,50 @@ class EditorImporter extends React.Component {
 		this.converter.current.value = "";
 	}
 
+	onSearch() {
+    let fileReader = new FileReader();
+			// fileReader.onload = (event) => {
+				let img = new Image();
+				img.onload = () => {
+					// using canvas to convert
+					let canvasEle = document.createElement('canvas');
+					canvasEle.width = 32;
+					canvasEle.height = 32;
+					
+					let context = canvasEle.getContext("2d");
+
+					// canvas will automatically scale image down for us to desired pixel grid
+					context.drawImage(img, 0, 0, 32, 32);
+					
+					let imgData = context.getImageData(0, 0, 32, 32);
+
+					let convSet = this.converterSetting.current.value;
+
+					// determine conversion method, pass it up
+					this.props.convert(imgData, convSet);
+				};
+
+				// direct hit
+				// let rc = 'https://i.scdn.co/image/ab67616d0000b273b6fd3e0525827a9dd794a556';
+
+				// rough customers
+				let rc = 'https://i.scdn.co/image/ab67616d0000b273b49cfc30159b7d06ee9c89e6'
+
+				var request = new XMLHttpRequest();
+				request.open('GET', rc, true);
+				request.responseType = 'blob';
+				request.onload = function() {
+				    var reader = new FileReader();
+				    reader.readAsDataURL(request.response);
+				    reader.onload =  function(e){
+				    	img.src = e.target.result;
+				        console.log('DataURL:', e.target.result);
+				    };
+				};
+				request.send();
+    // };
+	};
+
 	shouldComponentUpdate() {
 		// no need to update
 		return false;
@@ -153,6 +199,14 @@ class EditorImporter extends React.Component {
 						<option value="grey">Convert to greyscale (fast, pre-determined colors)</option>
 						<option value="sepia">Convert to sepia (fast, pre-determined colors)</option>
 					</select>
+				</div>
+
+				<div>
+				  <input
+				    ref = {this.searcher}
+				    type="string"
+				    onChange = {this.onSearch.bind(this)}
+				  />
 				</div>
 			</div>
 		);
