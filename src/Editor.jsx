@@ -1,11 +1,12 @@
 import React from 'react';
 import EditorCanvas from './EditorCanvas.jsx';
-import EditorPalette from './EditorPalette.jsx';
-import EditorSwatch from './EditorSwatch.jsx';
 import EditorMetadata from './EditorMetadata.jsx';
 import EditorImporter from './EditorImporter.jsx';
 import EditorQrGenerator from './EditorQrGenerator.jsx';
 import * as EditorTools from './EditorTools.js';
+import { SpotifyApiContext } from 'react-spotify-api';
+import { Search } from 'react-spotify-api';
+// import MySearch from './MySearch.jsx';
 
 // regular js imports
 import ACNL from './acnl.js';
@@ -16,6 +17,8 @@ import ACNL from './acnl.js';
 class Editor extends React.Component {
 	constructor(props) {
 		super(props);
+		this.myRef = React.createRef();
+		this.handleQueryChange = this.handleQueryChange.bind(this);
 		this.state = {
 			acnl: new ACNL(),
 			chosenColor: 0,
@@ -32,6 +35,8 @@ class Editor extends React.Component {
 			],
 			shouldQrCodeUpdate: false,
 			qrRefreshTimer: null,
+			query: 'weezer',
+			art_url: ''
 		};
 	}
 
@@ -533,10 +538,25 @@ class Editor extends React.Component {
 	}
 	/* CONVERT HELPER END */
 
+  handleQueryChange(query) {
+  	this.setState({query: query})
+  }
+
+	handleAlbumChange(e) {
+  	// this.props.onQueryChange(e.target.value);
+  	console.log("ALBUMS DONE")
+  }
+
 	shouldComponentUpdate(nextProps, nextState) {
 		// only render after refreshing pixels
 		if (nextState.pixelBuffer.length === 0) return true;
 		else return false;
+	}
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if (prevState.art_url !== this.myRef.current.src) {
+			this.setState({art_url: this.myRef.current.src})
+		}
 	}
 
 	render() {
@@ -546,6 +566,9 @@ class Editor extends React.Component {
 		let isDrawing = this.state.isDrawing;
 		let canvases = this.state.canvases;
 		let canvasSizes = [64, 128, 512];
+		const spotifyApiKey = 'BQAcoiZ6iQNs1wLN0fjsswnmhLf-Q586wmygk0E8lgnswMa0YWE0KUDJZBF1E80rrndX1VDhsF6tM2HHZrwFLvAvFi2GZx46eEzlX79b3oOrGzKP49z_pcmPGW2zh7ZYMZrP14gTlcXTwBw'
+    const query = this.state.query;
+
 		// perform actualZoom calculations
 		let actualZooms = canvasSizes.map((size) => {
 			if (acnl.isProPattern()) return size / 64;
@@ -553,14 +576,46 @@ class Editor extends React.Component {
 		});
 		let shouldQrCodeUpdate = this.state.shouldQrCodeUpdate;
 
-
 		return (
-			<div className="editor">
-				<div className="canvas-container">
+			<SpotifyApiContext.Provider value={spotifyApiKey}>
+				<div className="editor">
+					<div className="canvas-container">
+						<EditorCanvas
+							size={128}
+							canvasNumber={1}
+							actualZoom={actualZooms[1]}
+							swatch={acnl.swatch}
+							patterns={acnl.patterns}
+							isProPattern={acnl.isProPattern()}
+							chosenColor={chosenColor}
+							chosenTool={chosenTool}
+							isDrawing={isDrawing}
+							setIsDrawing={this.setIsDrawing.bind(this)}
+							updatePixelBuffer={this.updatePixelBuffer.bind(this)}
+							ref={canvases[1]}
+						/>
+
+						<EditorCanvas
+							size={64}
+							canvasNumber={0}
+							actualZoom={actualZooms[0]}
+							swatch={acnl.swatch}
+							patterns={acnl.patterns}
+							isProPattern={acnl.isProPattern()}
+							chosenColor={chosenColor}
+							chosenTool={chosenTool}
+							isDrawing={isDrawing}
+							setIsDrawing={this.setIsDrawing.bind(this)}
+							updatePixelBuffer={this.updatePixelBuffer.bind(this)}
+							ref={canvases[0]}
+						/>
+
+					</div>
+
 					<EditorCanvas
-						size={128}
-						canvasNumber={1}
-						actualZoom={actualZooms[1]}
+						size={512}
+						canvasNumber={2}
+						actualZoom={actualZooms[2]}
 						swatch={acnl.swatch}
 						patterns={acnl.patterns}
 						isProPattern={acnl.isProPattern()}
@@ -569,80 +624,78 @@ class Editor extends React.Component {
 						isDrawing={isDrawing}
 						setIsDrawing={this.setIsDrawing.bind(this)}
 						updatePixelBuffer={this.updatePixelBuffer.bind(this)}
-						ref={canvases[1]}
+						ref={canvases[2]}
 					/>
 
-					<EditorCanvas
-						size={64}
-						canvasNumber={0}
-						actualZoom={actualZooms[0]}
-						swatch={acnl.swatch}
-						patterns={acnl.patterns}
+					<EditorMetadata
+						patternTitle={acnl.patternTitle}
+						userName={acnl.userName}
+						userID={acnl.userID}
+						townName={acnl.townName}
+						townID={acnl.townID}
+
+						updatePatternTitle={this.updatePatternTitle.bind(this)}
+						updateUserName={this.updateUserName.bind(this)}
+						updateUserID={this.updateUserID.bind(this)}
+						updateTownName={this.updateTownName.bind(this)}
+						updateTownID={this.updateTownID.bind(this)}
+					/>
+
+					<EditorImporter
+						import={this.import.bind(this)}
+						convert={this.convert.bind(this)}
+						onQueryChange={this.handleQueryChange}
+						query={this.state.query}
+						art_url={this.state.art_url}
+					/>
+
+					<Search
+					  query={query}
+					  album
+					  artist
+					>
+						{({data}) =>
+			        data ? (
+		            <ul>
+		                <li>Albums</li>
+		                <ul>
+		                {data.albums.items[0].images[2].url}
+		                    <img src={data.albums.items[0].images[2].url}
+		                         ref={this.myRef} />
+		                    	{data.albums.items.map(album => (
+												
+			                      
+                            
+
+		                    	  <div key={album.id}>
+			                        <li>{album.name}</li>
+			                        <li>
+			                          <img src={album.images[0].url}
+			                               onChange = {this.handleAlbumChange}
+			                          />
+			                        </li>
+			                      </div>
+			                      
+		                    ))}
+		                </ul>
+		                <li>Artists</li>
+		                <ul>
+		                    {data.artists.items.map(artist => (
+		                        <li key={artist.id}>{artist.name}</li>
+		                    ))}
+		                </ul>
+		            </ul>
+			        ) : null
+				    }
+					</Search>
+
+					<EditorQrGenerator
+						data={acnl.data}
 						isProPattern={acnl.isProPattern()}
-						chosenColor={chosenColor}
-						chosenTool={chosenTool}
-						isDrawing={isDrawing}
-						setIsDrawing={this.setIsDrawing.bind(this)}
-						updatePixelBuffer={this.updatePixelBuffer.bind(this)}
-						ref={canvases[0]}
+						shouldQrCodeUpdate={shouldQrCodeUpdate}
 					/>
-
 				</div>
-
-				<EditorCanvas
-					size={512}
-					canvasNumber={2}
-					actualZoom={actualZooms[2]}
-					swatch={acnl.swatch}
-					patterns={acnl.patterns}
-					isProPattern={acnl.isProPattern()}
-					chosenColor={chosenColor}
-					chosenTool={chosenTool}
-					isDrawing={isDrawing}
-					setIsDrawing={this.setIsDrawing.bind(this)}
-					updatePixelBuffer={this.updatePixelBuffer.bind(this)}
-					ref={canvases[2]}
-				/>
-
-			<div className="color-tools">
-					<EditorPalette
-						chosenBinColor={acnl.swatch[chosenColor]}
-						onClick={this.selectPaletteColor.bind(this)}
-					/>
-
-					<EditorSwatch
-						swatch={acnl.swatch}
-						chosenColor={chosenColor}
-						onClick={this.selectSwatchColor.bind(this)}
-					/>
-			</div>
-
-
-				<EditorMetadata
-					patternTitle={acnl.patternTitle}
-					userName={acnl.userName}
-					userID={acnl.userID}
-					townName={acnl.townName}
-					townID={acnl.townID}
-
-					updatePatternTitle={this.updatePatternTitle.bind(this)}
-					updateUserName={this.updateUserName.bind(this)}
-					updateUserID={this.updateUserID.bind(this)}
-					updateTownName={this.updateTownName.bind(this)}
-					updateTownID={this.updateTownID.bind(this)}
-				/>
-
-				<EditorImporter
-					import={this.import.bind(this)}
-					convert={this.convert.bind(this)}
-				/>
-
-				<EditorQrGenerator
-					data={acnl.data}
-					isProPattern={acnl.isProPattern()}
-					shouldQrCodeUpdate={shouldQrCodeUpdate}
-				/>
-			</div>
+			</SpotifyApiContext.Provider>
 		);
 	}
 }
