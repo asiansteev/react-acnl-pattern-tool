@@ -651,7 +651,6 @@ class Editor extends React.Component {
 						{({data}) =>
 			        data ? (
 		            <ul>
-		                <li>Albums</li>
 		                <ul>
 			                  {data.albums.items[0].artists[0].name} - {data.albums.items[0].name}
 		                    <br />
