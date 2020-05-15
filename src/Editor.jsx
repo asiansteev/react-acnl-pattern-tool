@@ -36,7 +36,8 @@ class Editor extends React.Component {
 			shouldQrCodeUpdate: false,
 			qrRefreshTimer: null,
 			query: 'weezer',
-			art_url: ''
+			art_url: '',
+			spotifyApiKey: 'BQDVOrebkKKkAyKhUX9TbvG62SFH7hK_Z-vSwnQNIkHiwDo3eBDqvNjJZGD5Xppbhu1sDS4_FzovLso5V0q-EDJxjayPZEVLx0cU41zw3K2XQO9slw2qc5wB7V7daOqSRC5dzabP_57TqwM'
 		};
 	}
 
@@ -543,20 +544,13 @@ class Editor extends React.Component {
   }
 
 	handleAlbumChange(e) {
-  	// this.props.onQueryChange(e.target.value);
-  	console.log("ALBUMS DONE")
+  	this.setState({art_url: this.myRef.current.src})
   }
 
 	shouldComponentUpdate(nextProps, nextState) {
 		// only render after refreshing pixels
 		if (nextState.pixelBuffer.length === 0) return true;
 		else return false;
-	}
-
-	componentDidUpdate(prevProps, prevState, snapshot) {
-		if (prevState.art_url !== this.myRef.current.src) {
-			this.setState({art_url: this.myRef.current.src})
-		}
 	}
 
 	render() {
@@ -566,7 +560,7 @@ class Editor extends React.Component {
 		let isDrawing = this.state.isDrawing;
 		let canvases = this.state.canvases;
 		let canvasSizes = [64, 128, 512];
-		const spotifyApiKey = 'BQAcoiZ6iQNs1wLN0fjsswnmhLf-Q586wmygk0E8lgnswMa0YWE0KUDJZBF1E80rrndX1VDhsF6tM2HHZrwFLvAvFi2GZx46eEzlX79b3oOrGzKP49z_pcmPGW2zh7ZYMZrP14gTlcXTwBw'
+		const spotifyApiKey = this.state.spotifyApiKey;
     const query = this.state.query;
 
 		// perform actualZoom calculations
@@ -659,20 +653,17 @@ class Editor extends React.Component {
 		            <ul>
 		                <li>Albums</li>
 		                <ul>
-		                {data.albums.items[0].images[2].url}
-		                    <img src={data.albums.items[0].images[2].url}
-		                         ref={this.myRef} />
-		                    	{data.albums.items.map(album => (
-												
-			                      
-                            
-
-		                    	  <div key={album.id}>
+		                    <img src={data.albums.items[0].images[1].url}
+		                         ref={this.myRef} 
+														 onLoad = {this.handleAlbumChange.bind(this)}
+	                           alt={data.albums.items[0].name +  ' Album Art'}
+														 
+	                      />
+		                    	{/*{data.albums.items.map(album => (
+												    <div key={album.id}>
 			                        <li>{album.name}</li>
 			                        <li>
-			                          <img src={album.images[0].url}
-			                               onChange = {this.handleAlbumChange}
-			                          />
+			                          <img src={album.images[0].url} />
 			                        </li>
 			                      </div>
 			                      
@@ -682,7 +673,7 @@ class Editor extends React.Component {
 		                <ul>
 		                    {data.artists.items.map(artist => (
 		                        <li key={artist.id}>{artist.name}</li>
-		                    ))}
+		                    ))} */}
 		                </ul>
 		            </ul>
 			        ) : null
