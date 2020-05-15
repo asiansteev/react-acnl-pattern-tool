@@ -653,7 +653,6 @@ class Editor extends React.Component {
 		            <ul>
 		                <li>Albums</li>
 		                <ul>
-		                {console.log(data.albums.items[0])}
 			                  {data.albums.items[0].artists[0].name} - {data.albums.items[0].name}
 		                    <br />
 		                    <img src={data.albums.items[0].images[1].url}
