@@ -1,5 +1,5 @@
 import React from 'react';
-import qrcode from "./jsqrcode.js";
+// import qrcode from "./jsqrcode.js";
 
 // handles all imports for the tool
 // will do both qr detection and image conversion
